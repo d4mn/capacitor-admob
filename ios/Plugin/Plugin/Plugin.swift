@@ -239,13 +239,14 @@ public class AdMob: CAPPlugin, GADBannerViewDelegate, GADInterstitialDelegate, G
      */
     @objc func prepareInterstitial(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            var adUnitID = call.getString("adId") ?? ""
+            let adUnitID = call.getString("adId") ?? ""
             let isTest = call.getBool("isTesting") ?? false
             if (isTest) {
             }
 
-            self.interstitial = DFPInterstitial(adUnitID: adUnitID)
-            self.interstitial.load(DFPRequest())
+            self.interstitial = GADInterstitial(adUnitID: adUnitID)
+            self.interstitial.delegate = self
+            self.interstitial.load(GADRequest())
 
             call.success(["value": true])
         }
@@ -256,12 +257,14 @@ public class AdMob: CAPPlugin, GADBannerViewDelegate, GADInterstitialDelegate, G
             if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
                 if self.interstitial.isReady {
                     self.interstitial.present(fromRootViewController: rootViewController)
+                    call.success(["value": true])
                 } else {
                     NSLog("Ad wasn't ready")
+                    call.reject("Ad is not ready")
                 }
+            } else {
+                call.reject("Failed to show ad")
             }
-
-            call.success(["value": true])
         }
     }
 
@@ -310,7 +313,7 @@ public class AdMob: CAPPlugin, GADBannerViewDelegate, GADInterstitialDelegate, G
      */
     @objc func prepareRewardVideoAd(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            var adUnitID: String = call.getString("adId") ?? ""
+            let adUnitID: String = call.getString("adId") ?? ""
             let isTest = call.getBool("isTesting") ?? false
             if (isTest) {
             }
@@ -346,6 +349,7 @@ public class AdMob: CAPPlugin, GADBannerViewDelegate, GADInterstitialDelegate, G
 
         }
     }
+    
 
     /// Tells the delegate that the rewarded ad was presented.
     public func rewardedAdDidPresent(_ rewardedAd: GADRewardedAd) {
